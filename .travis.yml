@@ -1,10 +1,25 @@
 language: objective-c
 osx_image: xcode9
 
-branches:
-  only:
-    - master
-    
+env:
+  global:
+  - LC_CTYPE=en_US.UTF-8
+  - LANG=en_US.UTF-8
+  - PROJECT=Factoriel.xcodeproj
+  - IOS_FRAMEWORK_SCHEME="Factoriel"
+  - IOS_SDK=iphonesimulator11.0
+  matrix:
+  - DESTINATION="OS=11.0,name=iPhone 7"           SCHEME="$IOS_FRAMEWORK_SCHEME"     SDK="$IOS_SDK"
+
 script:
-  - set -o pipefail
-  - xcodebuild clean test -project Factoriel.xcodeproj -scheme Factoriel -destination "platform=iOS Simulator,name=iPhone 7,OS=11" ONLY_ACTIVE_ARCH=NO -quiet
+- brew unlink swiftlint
+- brew install swiftlint
+- xcodebuild -version
+- xcodebuild -showsdks
+- xcodebuild -project "$PROJECT" -scheme "$SCHEME" -sdk "$SDK" -destination "$DESTINATION" -configuration Debug ONLY_ACTIVE_ARCH=YES -enableCodeCoverage YES ENABLE_TESTABILITY=YES build test
+
+notifications:
+  email: false
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
